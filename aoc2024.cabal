@@ -23,7 +23,9 @@ executable aoc2024
   -- Modules included in this executable, other than Main.
   other-modules:
     Paths_aoc2024
+    Utils
     Day01
+    Day02
 
   autogen-modules:
     Paths_aoc2024
