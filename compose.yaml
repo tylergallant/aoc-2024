@@ -1,0 +1,6 @@
+services:
+  aoc2024:
+    build:
+      context: .
+    volumes:
+      - './data:/usr/aoc-2024/data'
