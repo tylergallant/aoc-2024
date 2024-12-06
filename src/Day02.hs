@@ -1,7 +1,6 @@
 module Day02 where
 
 import Data.Char
-import Data.List
 import Text.ParserCombinators.ReadP
 import Utils
 
@@ -18,24 +17,35 @@ parser = manyTill report eof
     newline = char '\n'
     space = char ' '
 
-isSafe :: Report -> Bool
-isSafe = fst . scan
+checkDir :: Ordering -> Report -> Bool
+checkDir _ [] = True
+checkDir _ [_] = True
+checkDir order (x:y:xs) = compare x y == order && withinRange && recur
   where
-    scan [] = (True, EQ)
-    scan [_] = (True, EQ)
-    scan (x:y:xs)
-      | 1 <= diff && diff <= 3 = (restSafe && ordering /= LT, GT)
-      | -3 <= diff && diff <= -1 = (restSafe && ordering /= GT, LT)
-      | otherwise = (False, EQ)
-      where
-        diff = x - y
-        (restSafe, ordering) = scan (y:xs)
+    diff = abs $ x - y
+    withinRange = 1 <= diff && diff <= 3
+    recur = checkDir order $ y : xs
+
+checkReport :: Report -> Bool
+checkReport report = checkDir LT report || checkDir GT report
+
+dampen :: Int -> Report -> [Report]
+dampen 0 xs = [xs]
+dampen _ [] = [[]]
+dampen n (x:xs) = ((x:) <$> dampen n xs) ++ dampen (n - 1) xs
+
+scanReport :: Report -> Bool
+scanReport = any checkReport . dampen 1
 
 solution1 :: Solution Input Output
-solution1 = length . elemIndices True . fmap isSafe
+solution1 = length . filter id . fmap checkReport
+
+solution2 :: Solution Input Output
+solution2 = length . filter id . fmap scanReport
 
 day02 :: IO ()
 day02 = do
   input <- getInput "day02-input.txt"
   let solve = createSolver parser input
   solve solution1
+  solve solution2
