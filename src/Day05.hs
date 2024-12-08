@@ -45,9 +45,11 @@ parser = do
   updates <- manyTill pUpdate eof
   return (mconcat rules, updates)
 
+fixUpdate :: Rule -> Update -> Update
+fixUpdate (Rule r) = sortBy r
+
 isCorrectlyOrdered :: Rule -> Update -> Bool
-isCorrectlyOrdered r update = update == sortBy sorting update
-  where sorting = runRule r
+isCorrectlyOrdered r update = update == fixUpdate r update
 
 middlePageNumber :: Update -> Maybe Int
 middlePageNumber pages
@@ -61,8 +63,17 @@ solution1 (rules, updates) = sum middles
     onlyCorrect = filter correctByRules updates
     correctByRules = isCorrectlyOrdered rules
 
+solution2 :: Solution Input Output
+solution2 (rules, updates) = sum middles
+  where
+    middles = mapMaybe middlePageNumber fixed
+    fixed = fixUpdate rules <$> onlyIncorrect
+    onlyIncorrect = filter incorrectByRules updates
+    incorrectByRules = not . isCorrectlyOrdered rules
+
 day05 :: IO ()
 day05 = do
   input <- getInput "day05-input.txt"
   let solve = createSolver parser input
   solve solution1
+  solve solution2
