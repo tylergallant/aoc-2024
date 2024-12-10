@@ -1,6 +1,6 @@
 module Day07 where
 
-import Control.Applicative
+import Data.Foldable
 import Text.ParserCombinators.ReadP
 import Utils
 
@@ -24,31 +24,26 @@ parser :: ReadP Input
 parser = manyTill lineSeparatedEquation eof
   where lineSeparatedEquation = pEquation <* char '\n'
 
-candidates :: [Operand] -> [[Operator]]
-candidates = go . subtract 1 . length
-  where
-    go n
-      | n <= 0 = []
-      | n == 1 = fmap (:[]) operators
-      | otherwise = liftA2 (:) operators . go $ n - 1
-    operators = [(+), (*)]
+concatDigits :: Int -> Int -> Int
+concatDigits x y = read $ show x ++ show y
 
-possibleResults :: [Operand] -> [TestValue]
-possibleResults operands = go operands <$> candidates operands
-  where
-    go [] _ = 0
-    go [x] _ = x
-    go (x:_:_) [] = x
-    go (x:y:xs) (op:ops) = go (op x y : xs) ops
-
-couldBeTrue :: Equation -> Bool
-couldBeTrue (testValue, operands) = elem testValue $ possibleResults operands
+couldBeTrue :: [Operator] -> Equation -> Bool
+couldBeTrue _ (_, []) = False
+couldBeTrue _ (target, [n]) = target == n
+couldBeTrue ops (target, n:ns) = elem target $ foldl' f [n] ns
+  where f rs o = [op r o | r <- rs, op <- ops, op r o <= target]
 
 solution1 :: Solution Input Output
-solution1 = sum . fmap fst . filter couldBeTrue
+solution1 = sum . fmap fst . filter criteria
+  where criteria = couldBeTrue [(+), (*)]
+
+solution2 :: Solution Input Output
+solution2 = sum . fmap fst . filter criteria
+  where criteria = couldBeTrue [(+), (*), concatDigits]
 
 day07 :: IO ()
 day07 = do
   input <- getInput "day07-input.txt"
   let solve = createSolver parser input
   solve solution1
+  solve solution2
