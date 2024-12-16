@@ -6,6 +6,7 @@ import Day03 (day03)
 import Day04 (day04)
 import Day05 (day05)
 import Day07 (day07)
+import Day08 (day08)
 import System.Environment (getArgs)
 
 main :: IO ()
@@ -18,4 +19,5 @@ main = do
     "4" : _ -> day04
     "5" : _ -> day05
     "7" : _ -> day07
+    "8" : _ -> day08
     _ -> error "None or invalid day number provided."

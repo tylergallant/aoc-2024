@@ -30,6 +30,7 @@ executable aoc2024
     Day04
     Day05
     Day07
+    Day08
 
   autogen-modules:
     Paths_aoc2024
@@ -37,9 +38,9 @@ executable aoc2024
   build-depends:
       base ^>=4.17.2.0
     -- Package `mtl`: Monad classes for transformers.
-    -- , mtl ^>=2.3.1
+    , mtl ^>=2.3.1
     -- -- Package `containers`: Brings maps, sets, trees, graphs, sequences.
-    -- , containers ^>=0.7
+    , containers ^>=0.7
     -- -- Package `split`: Functions for splitting lists.
     -- , split ^>=0.2.4
     -- -- Package `vector`: Performant, fixed length arrays.
