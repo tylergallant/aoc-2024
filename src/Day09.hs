@@ -70,6 +70,6 @@ solution1 = checksum . defrag . readDiskMap
 
 day09 :: IO ()
 day09 = do
-  input <- getInput "day09-input-example.txt"
+  input <- getInput "day09-input.txt"
   let solve = createSolver parser input
   solve solution1
