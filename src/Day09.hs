@@ -1,5 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
-
 module Day09 where
 
 import Control.Monad.ST
@@ -38,32 +36,30 @@ readDiskMap diskMap = V.fromList $ do
   (fid, fl, sl) <- diskMap
   replicate fl (Just fid) ++ replicate sl Nothing
 
-mutate :: MDisk s -> StateT (Int, Int) (ST s) Disk
-mutate disk = do
+mutateDisk :: MDisk s -> StateT (Int, Int) (ST s) Disk
+mutateDisk disk = do
   (p, q) <- get
-  if p >= q then V.freeze disk else do
-    (,) <$> MV.readMaybe disk p <*> MV.readMaybe disk q >>= \case
-      -- Outside bounds of vector, halt
-      (Nothing, _) -> V.freeze disk
-      (_, Nothing) -> V.freeze disk
-      -- p is a file, continue
-      (Just (Just _), _) -> do
-        put (p + 1, q)
-        mutate disk
-      -- q is free space, continue
-      (_, Just Nothing) -> do
-        put (p, q - 1)
-        mutate disk
-      -- p is free space, q is a file, swap
-      (Just Nothing, Just (Just _)) -> do
-        MV.swap disk p q
-        put (p + 1, q - 1)
-        mutate disk
+  if p >= q then V.freeze disk else
+    let handleItems (Just (Just _)) _ = do
+          put (p + 1, q)
+          mutateDisk disk
+        handleItems _ (Just Nothing) = do
+          put (p, q - 1)
+          mutateDisk disk
+        handleItems (Just Nothing) (Just (Just _)) = do
+          MV.swap disk p q
+          put (p + 1, q - 1)
+          mutateDisk disk
+        handleItems _ _ = V.freeze disk
+     in do
+       p' <- MV.readMaybe disk p
+       q' <- MV.readMaybe disk q
+       handleItems p' q'
 
 defrag :: Disk -> Disk
-defrag disk = runST $ evalStateT mutatedDisk initialState
+defrag disk = runST $ evalStateT mutation initialState
   where
-    mutatedDisk = V.thaw disk >>= mutate
+    mutation = V.thaw disk >>= mutateDisk
     initialState = (0, length disk - 1)
 
 checksum :: Disk -> Checksum
@@ -74,6 +70,6 @@ solution1 = checksum . defrag . readDiskMap
 
 day09 :: IO ()
 day09 = do
-  input <- getInput "day09-input.txt"
+  input <- getInput "day09-input-example.txt"
   let solve = createSolver parser input
   solve solution1
